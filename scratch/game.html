@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walk the Plank!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background: linear-gradient(to bottom, #87CEEB 0%, #4682B4 100%); /* Sky to Sea gradient */
+            color: #2F4F4F; /* Dark Slate Gray */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden; /* Prevent horizontal scrollbars */
+        }
+        /* Utility class to hide elements */
+        .hidden {
+            display: none;
+        }
+        /* Custom styles for game elements */
+        .game-container {
+            background-color: rgba(245, 222, 179, 0.8); /* Wheat with transparency */
+            border: 5px solid #8B4513; /* Saddle Brown */
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            max-width: 90%;
+            width: 800px; /* Adjust width as needed */
+        }
+        /* --- Difficulty Selection Styling --- */
+        .difficulty-selection {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px; /* Space between buttons */
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+        }
+        .difficulty-button {
+             font-family: 'Press Start 2P', cursive;
+             color: white;
+             border-radius: 8px;
+             padding: 12px 20px;
+             cursor: pointer;
+             transition: background-color 0.2s, transform 0.1s;
+             box-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+             font-size: 1em;
+             border-width: 2px;
+        }
+        .difficulty-button:hover {
+             transform: translateY(-2px);
+        }
+        /* Specific colors for difficulty */
+        .easy { background-color: #32CD32; border-color: #228B22; } /* LimeGreen / ForestGreen */
+        .easy:hover { background-color: #2E8B57; } /* SeaGreen */
+        .medium { background-color: #FF8C00; border-color: #CD853F; } /* DarkOrange / Peru */
+        .medium:hover { background-color: #FF4500; } /* OrangeRed */
+        .difficult { background-color: #DC143C; border-color: #8B0000; } /* Crimson / DarkRed */
+        .difficult:hover { background-color: #B22222; } /* Firebrick */
+
+
+        /* --- Simple Pirate Ship Styling --- */
+        .pirate-ship {
+            position: relative;
+            width: 90%;
+            max-width: 600px;
+            height: 250px;
+            background-color: #8B4513;
+            border-radius: 10px 10px 50% 50% / 10px 10px 20px 20px;
+            margin: 30px auto;
+            border: 3px solid #A0522D;
+            overflow: hidden;
+        }
+        .water {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 60px;
+            background: linear-gradient(to bottom, #1E90FF 0%, #00008B 100%);
+            border-top: 3px dashed #ADD8E6; z-index: 0;
+        }
+        .plank {
+            position: absolute; bottom: 55px; left: 50%; transform: translateX(-50%);
+            width: 70%; height: 20px; background-color: #D2B48C;
+            border: 2px solid #8B4513; border-radius: 3px; z-index: 1;
+        }
+        .pirate-figure {
+            position: absolute; bottom: 75px; left: 15%; width: 20px; height: 40px;
+            z-index: 2; transition: left 0.5s ease-in-out, transform 0.8s ease-in 0.5s;
+        }
+        .pirate-figure div { position: absolute; background-color: #000; }
+        .head { width: 15px; height: 15px; border-radius: 50%; top: 0; left: 2.5px; }
+        .body { width: 5px; height: 15px; top: 15px; left: 7.5px; }
+        .arm1 { width: 12px; height: 4px; top: 18px; left: -2px; transform: rotate(-30deg); }
+        .arm2 { width: 12px; height: 4px; top: 18px; left: 10px; transform: rotate(30deg); }
+        .leg1 { width: 4px; height: 12px; top: 29px; left: 5px; transform: rotate(20deg); }
+        .leg2 { width: 4px; height: 12px; top: 29px; left: 11px; transform: rotate(-20deg); }
+
+        /* --- Other Styles --- */
+        .word-display { font-size: 1.8em; letter-spacing: 10px; margin-bottom: 25px; min-height: 40px; color: #556B2F; word-break: break-all; }
+        .input-area { margin-top: 25px; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .input-area input[type="text"] { font-family: 'Press Start 2P', cursive; padding: 10px; border: 3px solid #A0522D; border-radius: 8px; width: 70px; text-align: center; font-size: 1.2em; text-transform: uppercase; background-color: #FFF8DC; }
+        .input-area input[type="text"]:focus { outline: none; border-color: #8B4513; box-shadow: 0 0 5px rgba(139, 69, 19, 0.5); }
+        .input-area input[type="text"]:disabled { background-color: #eee; cursor: not-allowed; }
+        .guess-button { font-family: 'Press Start 2P', cursive; background-color: #CD853F; color: white; border: 2px solid #8B4513; border-radius: 8px; padding: 10px 15px; cursor: pointer; transition: background-color 0.2s, transform 0.1s; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); font-size: 1em; }
+        .guess-button:hover { background-color: #A0522D; transform: translateY(-1px); }
+        .guess-button:disabled { background-color: #A9A9A9; color: #D3D3D3; cursor: not-allowed; box-shadow: none; transform: none; }
+        .message-box { margin-top: 20px; font-size: 1.1em; min-height: 30px; color: #DC143C; }
+        .reset-button { font-family: 'Press Start 2P', cursive; background-color: #32CD32; color: white; border: 2px solid #228B22; border-radius: 8px; padding: 12px 20px; margin-top: 25px; cursor: pointer; transition: background-color 0.2s, transform 0.1s; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); font-size: 1em; }
+        .reset-button:hover { background-color: #228B22; transform: translateY(-1px); }
+        .guesses-left { margin-top: 10px; font-size: 1em; color: #4682B4; }
+        .incorrect-letters-display { margin-top: 15px; font-size: 0.9em; color: #DC143C; min-height: 20px; word-wrap: break-word; letter-spacing: 3px; }
+
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="text-3xl font-bold mb-6 text-center text-amber-900">Walk the Plank!</h1>
+
+        <div id="difficulty-selection" class="difficulty-selection">
+             <h2 class="text-xl w-full mb-3">Choose Difficulty:</h2>
+             <button class="difficulty-button easy" data-difficulty="easy">Easy</button>
+             <button class="difficulty-button medium" data-difficulty="medium">Medium</button>
+             <button class="difficulty-button difficult" data-difficulty="difficult">Difficult</button>
+        </div>
+
+        <div id="game-area" class="hidden">
+            <div class="pirate-ship">
+                <div class="plank"></div>
+                <div class="pirate-figure" id="pirate">
+                    <div class="head"></div>
+                    <div class="body"></div>
+                    <div class="arm1"></div>
+                    <div class="arm2"></div>
+                    <div class="leg1"></div>
+                    <div class="leg2"></div>
+                </div>
+                <div class="water"></div>
+            </div>
+
+            <div class="guesses-left" id="guesses-left">Steps Left: 10</div>
+            <div class="word-display" id="word-display"></div>
+            <div class="message-box" id="message-box">Enter a letter & Guess!</div>
+            <div class="incorrect-letters-display" id="incorrect-letters-display">Incorrect Guesses: </div>
+
+            <div class="input-area">
+                <input type="text" id="letter-input" maxlength="1" placeholder="?" autofocus>
+                <button class="guess-button" id="guess-button">Guess!</button>
+            </div>
+        </div>
+
+         <button class="reset-button hidden" id="reset-button">Play Again?</button>
+    </div>
+
+    <script>
+        // --- Game Elements ---
+        const difficultySelectionArea = document.getElementById('difficulty-selection');
+        const difficultyButtons = document.querySelectorAll('.difficulty-button');
+        const gameArea = document.getElementById('game-area');
+        const wordDisplay = document.getElementById('word-display');
+        const guessesLeftDisplay = document.getElementById('guesses-left');
+        const incorrectLettersDisplay = document.getElementById('incorrect-letters-display');
+        const messageBox = document.getElementById('message-box');
+        const pirateFigure = document.getElementById('pirate');
+        const resetButton = document.getElementById('reset-button');
+        const letterInput = document.getElementById('letter-input');
+        const guessButton = document.getElementById('guess-button');
+
+        // --- Check if critical elements were found ---
+         if (!difficultySelectionArea || !gameArea || !resetButton || difficultyButtons.length === 0) {
+             const container = document.querySelector('.game-container');
+             if(container) container.innerHTML = "<h1>Error loading game UI!</h1>";
+         }
+
+        // --- Game Variables ---
+        // Word lists separated by difficulty
+        const wordLists = {
+            easy: ["SHIP", "GOLD", "MAP", "SEA", "HOOK", "DECK", "SAIL", "WAVE"],
+            medium: ["PIRATE", "ISLAND", "COMPASS", "PARROT", "ANCHOR", "CANNON", "RUM", "PLANK", "CABIN"],
+            difficult: ["TREASURE", "CARIBBEAN", "SHIPWRECK", "JOLLY ROGER", "CAPTAIN", "SEADOG", "MAROONED", "BUCCANEER", "SPYGLASS", "DOUBLOON"]
+        };
+        let secretWord = '';
+        let guessedLetters = [];
+        let incorrectLetters = [];
+        let incorrectGuesses = 0;
+        const maxIncorrectGuesses = 10;
+        let wordInProgress = [];
+        let gameActive = false;
+
+        // --- Functions ---
+
+        // Select a word based on difficulty
+        function selectWord(difficulty) {
+            const list = wordLists[difficulty] || wordLists.medium; // Default to medium if invalid
+            secretWord = list[Math.floor(Math.random() * list.length)].toUpperCase();
+        }
+
+        // Initialize the game state (called after difficulty is selected)
+        function initializeGame(difficulty) {
+             // Show game area, hide difficulty selection
+             if(gameArea) gameArea.classList.remove('hidden');
+             if(difficultySelectionArea) difficultySelectionArea.classList.add('hidden');
+             if(resetButton) resetButton.classList.add('hidden'); // Ensure reset is hidden
+
+            // Reset game state variables
+            gameActive = true;
+            incorrectGuesses = 0;
+            guessedLetters = [];
+            incorrectLetters = [];
+            wordInProgress = [];
+            selectWord(difficulty); // Pick word based on selected difficulty
+
+            // Setup the word display array
+            wordInProgress = secretWord.split('').map(char => (char === ' ' ? ' ' : '_'));
+
+            // Update UI elements
+            updateWordDisplay();
+            updateGuessesLeft();
+            updateIncorrectLettersDisplay();
+            messageBox.textContent = 'Enter a letter & Guess!';
+            messageBox.style.color = '#2F4F4F'; // Reset message color
+
+            // Setup input elements
+            if(letterInput) {
+                letterInput.value = '';
+                letterInput.disabled = false;
+                letterInput.focus();
+            }
+            if(guessButton) {
+                 guessButton.disabled = false;
+            }
+
+             // Delay positioning until elements are visible and rendered
+             setTimeout(() => {
+                 resetPiratePosition();
+             }, 100);
+        }
+
+        // Function to return to difficulty selection
+        function returnToDifficultySelection() {
+            gameActive = false;
+            if(gameArea) gameArea.classList.add('hidden');
+            if(resetButton) resetButton.classList.add('hidden');
+            if(difficultySelectionArea) difficultySelectionArea.classList.remove('hidden');
+        }
+
+
+        function updateWordDisplay() {
+            const el = document.getElementById('word-display');
+            if(el) el.textContent = wordInProgress.join('');
+        }
+
+        function updateGuessesLeft() {
+            const steps = maxIncorrectGuesses - incorrectGuesses;
+             const el = document.getElementById('guesses-left');
+             if(el) el.textContent = `Steps Left: ${steps}`;
+        }
+
+        function updateIncorrectLettersDisplay() {
+             const el = document.getElementById('incorrect-letters-display');
+             if(el) el.textContent = `Incorrect Guesses: ${incorrectLetters.sort().join(', ')}`;
+        }
+
+        function processGuess() {
+            const currentLetterInput = document.getElementById('letter-input');
+            if (!gameActive || !currentLetterInput) { return; }
+
+            const rawInput = currentLetterInput.value;
+            currentLetterInput.value = '';
+            currentLetterInput.focus();
+
+            // --- Input Validation ---
+            if (!rawInput || rawInput.length !== 1) {
+                messageBox.textContent = 'Please enter a single letter.';
+                messageBox.style.color = '#FFA500'; return;
+            }
+            const guessedLetter = rawInput.toUpperCase();
+            if (!/^[A-Z]$/.test(guessedLetter)) {
+                 messageBox.textContent = 'Please enter a letter (A-Z).';
+                 messageBox.style.color = '#FFA500'; return;
+            }
+            if (guessedLetters.includes(guessedLetter)) {
+                messageBox.textContent = `You already guessed "${guessedLetter}"! Try another.`;
+                messageBox.style.color = '#FFA500'; return;
+            }
+
+            // --- Process Valid New Guess ---
+            guessedLetters.push(guessedLetter);
+
+            if (secretWord.includes(guessedLetter)) {
+                messageBox.textContent = `Good guess! "${guessedLetter}" is in the word!`;
+                messageBox.style.color = '#2E8B57';
+                for (let i = 0; i < secretWord.length; i++) {
+                    if (secretWord[i] === guessedLetter) { wordInProgress[i] = guessedLetter; }
+                }
+                updateWordDisplay();
+                checkWin();
+            } else {
+                messageBox.textContent = `Oops! No "${guessedLetter}" found. Take a step!`;
+                messageBox.style.color = '#DC143C';
+                incorrectGuesses++;
+                incorrectLetters.push(guessedLetter);
+                updateGuessesLeft();
+                updateIncorrectLettersDisplay();
+                movePirate();
+                checkLoss();
+            }
+        }
+
+        function movePirate() {
+             const currentPlank = document.querySelector('#game-area .plank');
+             const currentPirateFigure = document.getElementById('pirate');
+             if (!currentPlank || !currentPlank.parentElement || !currentPirateFigure) { return; }
+
+             const plankWidth = currentPlank.offsetWidth;
+             const shipWidth = currentPlank.parentElement.offsetWidth;
+             if (shipWidth === 0) { return; }
+
+             const travelDistance = plankWidth * 0.7;
+             const startOffset = plankWidth * 0.15;
+             const stepSize = maxIncorrectGuesses > 0 ? travelDistance / maxIncorrectGuesses : 0;
+             const plankLeftEdgePercent = 50 - (plankWidth / shipWidth * 100 / 2);
+             const currentStep = Math.min(incorrectGuesses, maxIncorrectGuesses);
+             const newLeftPercent = plankLeftEdgePercent + ((startOffset + currentStep * stepSize) / shipWidth * 100);
+             const maxLeftPercent = plankLeftEdgePercent + ((startOffset + travelDistance) / shipWidth * 100);
+
+             currentPirateFigure.style.left = `${Math.min(newLeftPercent, maxLeftPercent)}%`;
+
+             if (incorrectGuesses >= maxIncorrectGuesses) {
+                  currentPirateFigure.style.transition = 'left 0.5s ease-in-out, transform 0.8s ease-in 0.5s';
+                  currentPirateFigure.style.transform = 'translateY(120px) rotate(90deg)';
+             }
+         }
+
+        function resetPiratePosition() {
+             const currentPlank = document.querySelector('#game-area .plank');
+             const currentPirateFigure = document.getElementById('pirate');
+             if (!currentPlank || !currentPlank.parentElement || !currentPirateFigure) { return; }
+             const shipDiv = currentPlank.parentElement;
+              if (!shipDiv) { return; }
+
+             currentPirateFigure.style.transition = 'none';
+             currentPirateFigure.style.transform = 'translateY(0) rotate(0deg)';
+
+             const plankWidth = currentPlank.offsetWidth;
+             const shipWidth = shipDiv.offsetWidth;
+
+             if (shipWidth === 0) {
+                 currentPirateFigure.style.left = '15%'; // Fallback
+             } else {
+                  const plankLeftEdgePercent = 50 - (plankWidth / shipWidth * 100 / 2);
+                  const startOffset = plankWidth * 0.15;
+                  const initialLeftPercent = plankLeftEdgePercent + (startOffset / shipWidth * 100);
+                  currentPirateFigure.style.left = `${initialLeftPercent}%`;
+             }
+
+             void currentPirateFigure.offsetWidth;
+             currentPirateFigure.style.transition = 'left 0.5s ease-in-out, transform 0.8s ease-in 0.5s';
+        }
+
+        function disableInput() {
+            gameActive = false;
+            const currentLetterInput = document.getElementById('letter-input');
+            const currentGuessButton = document.getElementById('guess-button');
+            if(currentLetterInput) currentLetterInput.disabled = true;
+            if(currentGuessButton) currentGuessButton.disabled = true;
+        }
+
+        function checkWin() {
+            if (!wordInProgress.includes('_')) {
+                messageBox.textContent = 'ARRR! You found the treasure! YOU WIN!';
+                messageBox.style.color = '#228B22';
+                disableInput();
+                if(resetButton) resetButton.classList.remove('hidden');
+            }
+        }
+
+        function checkLoss() {
+            if (incorrectGuesses >= maxIncorrectGuesses) {
+                messageBox.textContent = `SHIVER ME TIMBERS! The word was: ${secretWord}. You walked the plank!`;
+                messageBox.style.color = '#DC143C';
+                disableInput();
+                wordInProgress = secretWord.split('');
+                updateWordDisplay();
+                 if(resetButton) resetButton.classList.remove('hidden');
+            }
+        }
+
+        // --- Event Listeners ---
+        // Add listeners for difficulty buttons
+        difficultyButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                const selectedDifficulty = event.target.dataset.difficulty;
+                initializeGame(selectedDifficulty); // Start game with chosen difficulty
+            });
+        });
+
+        // Listener for the Reset button (returns to difficulty selection)
+        if (resetButton) {
+            resetButton.addEventListener('click', returnToDifficultySelection);
+        }
+
+        // Listeners for elements inside game area
+        const currentGuessButton = document.getElementById('guess-button');
+        if (currentGuessButton) {
+            currentGuessButton.addEventListener('click', processGuess);
+        }
+        const currentLetterInput = document.getElementById('letter-input');
+        if (currentLetterInput) {
+            currentLetterInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') { event.preventDefault(); processGuess(); }
+            });
+        }
+
+        // --- Initial Setup ---
+        window.addEventListener('DOMContentLoaded', () => {
+             // Page loaded, difficulty selection is visible by default
+        });
+
+    </script>
+</body>
+</html>
