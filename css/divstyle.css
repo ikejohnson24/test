@@ -1,0 +1,51 @@
+body{
+
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: aquamarine;
+    background-image:url("https://www.tripsavvy.com/thmb/xbY0gz7qYaPezriB_vaq59Di0qg=/750x0/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/Disneyland_IceCream_EyeScreamSundae_Clarabelles-56b7da233df78c0b1363bfbd.jpg");
+    
+}
+
+.common {
+    /* border: 2px solid white; */
+    position: absolute 
+}
+.nav{
+    position:relative;
+    float:right;
+    font-size: 75%;
+}
+.footer{
+    bottom: 5px;
+    left: 0px;
+    right: 0px;
+    font-size: 50%;
+    font-style: italic;
+    text-align: center;
+    background-color: darkgray;
+    position: fixed;
+}
+.header{
+    top: 15px ;
+    left: 0px ;
+    right: 0px ;
+    text-align: center;
+    z-index: -1;
+    
+}
+.content {
+    top: 60
+    px;
+    left: 0px;
+    right: 0px;
+    bottom: 30px;
+    background-color: rgba(54, 121, 130, 0.267);
+    text-align: center;
+    z-index: -1;
+    font-size: 250%;
+    color: aqua;
+    font-style: normal;
+    font-family: fantasy;
+
+}
+body
